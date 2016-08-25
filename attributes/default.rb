@@ -22,6 +22,6 @@ default['chef-lxc-container'] = {
   'distrib' => 'ubuntu',
   'release' => 'trusty',
   'architecture' => 'amd64',
-  'post-install-script' => 'http://repository.srv.gov.pf/lxc-container/lxc-ldap-post-install.sh'
+  'repository' => 'http://repository.srv.gov.pf/lxc-container'
 }
 

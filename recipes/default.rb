@@ -33,13 +33,13 @@ node['chef-lxc-container'].each do |name, instance|
   end
 
   # Post-install script:
-  if instance['post-install-script'] != ''
+  if instance['repository'] != ''
     bash 'wget lxc-post-install-script' do
-      code "cd /tmp && wget -O lxc-post-install.sh #{instance['post-install-script']} && chmod 500 lxc-post-install.sh"
+      code "cd /tmp && wget -O lxc-post-install.sh #{instance['repository']}/#{name}-post-install.sh && chmod 500 lxc-post-install.sh"
     end
   else
     cookbook_file "/tmp/lxc-post-install.sh" do
-    source "lxc-#{name}-post-install.sh"
+    source "#{name}-post-install.sh"
     owner 'root'
     group 'root'
     mode '0500'
@@ -47,7 +47,7 @@ node['chef-lxc-container'].each do |name, instance|
   end
 
   execute 'lxc-post-install.sh' do
-    command "export name=#{name}; /tmp/lxc-post-install.sh"
+    command "export name=#{name}; export repository=#{instance['repository']}; /tmp/lxc-post-install.sh"
   end
 
 end

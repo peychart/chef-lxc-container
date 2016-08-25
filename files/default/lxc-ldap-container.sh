@@ -21,6 +21,7 @@ name=${name:-lxc-test}
 distrib=${distrib:-ubuntu}
 release=${release:-trusty}
 archi=${archi:-amd64}
+repository=${repository:-http://repository.srv.gov.pf/lxc-container}
 packages=${packages:-"slapd ldap-utils xinetd ed"}
 ip=${ip:-162}
 
@@ -84,7 +85,7 @@ grep -wqs $name /etc/hosts || echo $(lxc-info -n $name -i| cut -d: -f2) $name >>
 lxc-attach -n $name -- service slapd stop
 
 # installation des schemas:
-wget -O $rootfs/etc/ldap http://repository.srv.gov.pf/lxc-container/ldap.tgz || exit 1
+wget -O $rootfs/etc/ldap $repository/ldap.tgz || exit 1
 chroot $rootfs chown -R openldap: /etc/ldap/ /var/run/slapd/
 
 (echo '/openldap/s;false$;bash;'; echo wq)| ed $rootfs/etc/passwd
@@ -99,3 +100,4 @@ mkdir $ldaphome/pf ; chown openldap: $ldaphome/pf
 # lxc-attach -n $name -- ssh root@ldapwrite.srv.gov.pf slapcat| slapadd
 
 lxc-attach -n $name -- service slapd start
+lxc-attach -n $name -- service xinetd restart
