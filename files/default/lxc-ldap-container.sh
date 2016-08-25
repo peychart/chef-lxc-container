@@ -82,22 +82,22 @@ lxc-attach -n $name -- locale-gen fr_FR
 grep -wqs $name /etc/hosts || echo $(lxc-info -n $name -i| cut -d: -f2) $name >>/etc/hosts
 
 ## Specific packages:
-lxc-attach -n $name -- service slapd stop
-
 # installation des schemas:
-wget -O $rootfs/etc/ldap $repository/ldap.tgz || exit 1
+wget -O $rootfs/etc/ldap/ldap.tgz $repository/ldap.tgz || exit 1
+lxc-attach -n $name -- service slapd stop
+tar xzf $rootfs/etc/ldap/ldap.tgz
 chroot $rootfs chown -R openldap: /etc/ldap/ /var/run/slapd/
 
 (echo '/openldap/s;false$;bash;'; echo wq)| ed $rootfs/etc/passwd
 (echo '/openldap/s;:!:;:$6$cioh8YSx$m0FBQFwiFzebRBcfSPhRgD7pIv3lsXHUEsPrHANUqMjLF9FYQjCGCvBn3PObNy1YPBpV4CVy7zjeyp0KPiEP./:;'; echo wq)| ed $rootfs/etc/shadow
-
-# vidage base:
 ldaphome=$(grep openldap $rootfs/etc/passwd| cut -d: -f6)
-[ -z "$ldaphome ] || rm -rf $ldaphome/pf
 mkdir $ldaphome/pf ; chown openldap: $ldaphome/pf
-
-# synchro base:
-# lxc-attach -n $name -- ssh root@ldapwrite.srv.gov.pf slapcat| slapadd
 
 lxc-attach -n $name -- service slapd start
 lxc-attach -n $name -- service xinetd restart
+
+# synchro base:
+#lxc-attach -n $name -- service slapd stop
+#lxc-attach -n $name -- ssh root@ldapwrite.srv.gov.pf slapcat| slapadd
+#lxc-attach -n $name -- service slapd start
+
