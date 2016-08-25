@@ -96,8 +96,12 @@ mkdir $ldaphome/pf ; chown openldap: $ldaphome/pf
 lxc-attach -n $name -- service slapd start
 lxc-attach -n $name -- service xinetd restart
 
-# synchro base:
-#lxc-attach -n $name -- service slapd stop
-#lxc-attach -n $name -- ssh root@ldapwrite.srv.gov.pf slapcat| slapadd
-#lxc-attach -n $name -- service slapd start
-
+cat <<EOF >$rootfs/root/synchroLdap.sh
+#!/bin/sh
+# synchro openldap base:
+# 0 4 * * 1 /root/synchroLdap.sh # for a crontab exemple...
+service slapd stop
+rm -rf $ldaphome/pf; mkdir $ldaphome/pf ; chown openldap: $ldaphome/pf
+ssh root@ldapwrite.srv.gov.pf slapcat| slapadd
+service slapd start
+EOF
