@@ -18,10 +18,10 @@
 # limitations under the License.
 
 default['chef-lxc-container'] = {
-  'name' => 'lxc-apache2',
+  'name' => 'lxc-ldap',
   'distrib' => 'ubuntu',
   'release' => 'trusty',
   'architecture' => 'amd64',
-  'post-install-script' => 'http://repository.srv.gov.pf/lxc-container/lxc-apache2-post-install.sh'
+  'post-install-script' => 'http://repository.srv.gov.pf/lxc-container/lxc-ldap-post-install.sh'
 }
 

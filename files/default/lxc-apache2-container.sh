@@ -21,7 +21,7 @@ name=${name:-lxc-test}
 distrib=${distrib:-ubuntu}
 release=${release:-trusty}
 archi=${archi:-amd64}
-packages=${packages:-"apache2 libapache2-mod-php5"}
+packages=${packages:-"apache2 libapache2-mod-php5 ed"}
 ip=${ip:-248}
 
 # LXC install:
@@ -49,11 +49,6 @@ w
 q
 EOF
 
-# set apache2 document root:
-mv /var/lib/squidguard/db/html/* $rootfs/var/www/html
-ln -fs $rootfs/var/www/html -t /var/lib/squidguard/db/
-ln -fs $rootfs/var/apache2 -t /var/log/
-
 #set network config:
 net=$(echo $(ip -4 -br -f inet address|grep lxc)|cut -d' ' -f3| cut -d'.' -f1-3)
 [ -z "$net" ] || cat <<EOF > $rootfs/etc/network/interfaces
@@ -72,10 +67,27 @@ iface eth0 inet static
 	dns-search srv.gov.pf gov.pf
 	dns-nameservers	$net.1
 EOF
+(grep -v search $rootfs/etc/resolv.conf; grep search /etc/resolv.conf) >/tmp/resolv.conf; cat /tmp/resolv.conf >$rootfs/etc/resolv.conf
 
+#set proxy:
 echo "Acquire::http { Proxy "http://proxy:3142/"; };" >$rootfs/etc/apt/apt.conf.d/02proxy
 
 # start container:
 lxc-start -n $name -d || exit $?
+chroot $rootfs echo 'LC_ALL=fr_FR' >/etc/default/locale
+lxc-attach -n $name -- locale-gen fr_FR
+
+#set /etc/hosts
 grep -wqs $name /etc/hosts || echo $(lxc-info -n $name -i| cut -d: -f2) $name >>/etc/hosts
 
+## Specific packages:
+# set apache2 document root:
+if [ -d /var/lib/squidguard/db/html -a ! -L /var/lib/squidguard/db/html ]; then
+ cp -rfp /var/lib/squidguard/db/html/* $rootfs/var/www/html
+ mv /var/lib/squidguard/db/html /var/lib/squidguard/db/html.sv
+fi
+ln -fs $rootfs/var/www/html -t /var/lib/squidguard/db/
+[ -d /var/log/apache2 -a ! -L /var/log/apache2 ] && rm -rf /var/log/apache2
+ln -fs $rootfs/var/log/apache2 -t /var/log/
+
+lxc-attach -n $name -- service apache2 reload

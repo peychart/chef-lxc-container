@@ -39,7 +39,7 @@ node['chef-lxc-container'].each do |name, instance|
     end
   else
     cookbook_file "/tmp/lxc-post-install.sh" do
-    source 'lxc-#{name}-post-install.sh'
+    source "lxc-#{name}-post-install.sh"
     owner 'root'
     group 'root'
     mode '0500'
